@@ -1,15 +1,10 @@
 const express = require("express");
 const app = express();
 const http = require("http");
-const port = 3000;
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-const io = new Server(server, {
-  cors: {
-    origin: ["http://localhost:3000", "http://127.0.0.1:5500", "http://10.0.2.2", "http://10.0.2.2:3000"],
-    methods: ["GET", "POST"],
-  },
-});
+const io = new Server(server);
+const PORT = process.env.PORT || 3700;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -20,35 +15,39 @@ app.post("/send_sms", (req, res) => {
 
   // * Emit SMS to device Id.
   const deviceId = req.body.device_id;
-  io.to(deviceId).emit("sendSMS", req.body);
+  io.to(deviceId).emit("send-sms", {
+    recipient: req.body.recipient,
+    content: req.body.content,
+  });
 
   return res.json({ ...req.body, status: "SENT" });
 });
 
-io.on("connection", (socket) => {
-  console.log("perangkat terhubung:", {
-    id: socket.id,
-    // ...socket.handshake.query,
-  });
+io.use(function (socket, next) {
+  console.log(socket.handshake.auth.token);
+  next();
+});
 
-  socket.on("disconnecting", () => {
-    console.log("Perangkat akan offline.", socket.id); // the Set contains at least the socket ID
+io.on("connection", (socket) => {
+  console.log("CONNECTED - ", socket.id);
+  console.log("QUERY - ", socket.handshake.query);
+  console.log("AUTH - ", socket.handshake.auth);
+  connectedId = socket.id;
+  socket.on("position-change", (data) => {
+    console.log(data);
+    io.emit("position-change", data);
   });
 
   socket.on("disconnect", () => {
-    console.log("Perangkat terputus.", socket.id);
+    console.log("DISCONNECTED - ", socket.id);
   });
 
-  // Send SMS
-  // socket.broadcast.to(socketid).emit('message', 'for your eyes only');
-  socket.on("sendSMS", (msg) => {
+  socket.on("send-sms", (msg) => {
     console.log("received Message: " + msg);
   });
-  socket.on("connectDevice", (data) => {
+  socket.on("connect-device", (data) => {
     console.log("Connected Device: ", data);
   });
 });
 
-server.listen(port, () => {
-  console.log(`listening on *:${port}`);
-});
+server.listen(PORT, () => console.log(`Listeing on port ${PORT}`));
