@@ -1,7 +1,7 @@
 {
-  "name": "sms-gateway",
+  "name": "asgate",
   "version": "1.0.0",
-  "description": "",
+  "description": "Android SMS Gateway.",
   "main": "index.js",
   "scripts": {
     "start": "node ./index.js",
@@ -16,10 +16,6 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.1",
-    "fastify": "^4.4.0",
-    "pg": "^8.7.3",
-    "pg-hstore": "^2.3.4",
-    "sequelize": "^6.21.3",
     "socket.io": "^4.5.1"
   }
 }
