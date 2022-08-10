@@ -4,6 +4,10 @@ const server = require("http").createServer(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.disable('x-powered-by')
+
+// API Routes
+app.use('/api/devices', require('./modules/devices/devices.controller'))
 
 app.post("/send_sms", (req, res) => {
   // TODO: Add Joi Validation
